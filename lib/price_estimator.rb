@@ -70,7 +70,7 @@ class PriceEstimator
       "people"      => 0.012,
       "drugs"       => 0.075,
       "food"        => 0.13,
-      "electronics" => 0.075,
+      "electronics" => 0.02,
     }.freeze
 
     def initialize(repacking)

@@ -91,11 +91,11 @@ describe PriceEstimator::Repacking do
           expect(calc.final_price).to eq 1_153_95
         end
 
-        it "returns $13,877.33 for a $9,900.00 job with 1 electronics and 2 food" do
+        it "returns $13,305.60 for a $9,900.00 job with 1 electronics and 2 food" do
           repacking = double(base_price_cents: 9_900_00, categories: [["electronics", 1], ["food", 2]])
           calc = described_class.new(repacking)
 
-          expect(calc.final_price).to eq 13_877_33
+          expect(calc.final_price).to eq 13_305_60
         end
       end
     end
