@@ -10,12 +10,16 @@ describe PriceEstimator do
       end
     end
 
-    xit "estimates $1,591.58 for job $1,299.99, 3 people, food" do
+    it "estimates $1,591.58 for job $1,299.99, 3 people, food" do
       expect(subject.estimate("$1,299.99, 3 people, food")).to eq "$1,591.58"
     end
 
-    xit "estimates $6,199.81 for job $5,432.00, 1 person, drugs" do
+    it "estimates $6,199.81 for job $5,432.00, 1 person, drugs" do
       expect(subject.estimate("$5,432.00, 1 person, drugs")).to eq "$6,199.81"
+    end
+
+    it "estimates $13,707.63 for job $12,456.95, 4 people, books" do
+      expect(subject.estimate("$12,456.95, 4 people, books")).to eq "$13,707.63"
     end
   end
 end

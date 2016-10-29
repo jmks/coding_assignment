@@ -5,11 +5,24 @@ class PriceEstimator
     format_cents_as_currency(calc.final_markup)
   end
 
+  private
+
   def format_cents_as_currency(price_cents)
     dollars = price_cents / 100
     cents   = price_cents % 100
 
-    "$#{dollars}.#{cents.to_s.rjust(2, '0')}"
+    "$#{thousands_delimited dollars}.#{cents.to_s.rjust(2, '0')}"
+  end
+
+  def thousands_delimited(dollars)
+    dollars
+      .to_s
+      .reverse
+      .chars
+      .each_slice(3)
+      .map(&:join)
+      .join(",")
+      .reverse
   end
 
   class Repacking
