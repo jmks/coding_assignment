@@ -2,24 +2,26 @@ require_relative "../lib/price_estimator"
 
 describe PriceEstimator do
   describe "#estimate" do
-    let(:subject) { described_class.new }
-
     context "without categories" do
       it "returns the flat markup price of $105.00 on job $100.00" do
-        expect(subject.estimate("$100.00")).to eq "$105.00"
+        estimator = described_class.new("$100.00")
+        expect(estimator.estimate).to eq "$105.00"
       end
     end
 
     it "estimates $1,591.58 for job $1,299.99, 3 people, food" do
-      expect(subject.estimate("$1,299.99, 3 people, food")).to eq "$1,591.58"
+      estimator = described_class.new("$1,299.99, 3 people, food")
+      expect(estimator.estimate).to eq "$1,591.58"
     end
 
     it "estimates $6,199.81 for job $5,432.00, 1 person, drugs" do
-      expect(subject.estimate("$5,432.00, 1 person, drugs")).to eq "$6,199.81"
+      estimator = described_class.new("$5,432.00, 1 person, drugs")
+      expect(estimator.estimate).to eq "$6,199.81"
     end
 
     it "estimates $13,707.63 for job $12,456.95, 4 people, books" do
-      expect(subject.estimate("$12,456.95, 4 people, books")).to eq "$13,707.63"
+      estimator = described_class.new("$12,456.95, 4 people, books")
+      expect(estimator.estimate).to eq "$13,707.63"
     end
   end
 end
@@ -49,7 +51,6 @@ describe PriceEstimator::Repacking do
 
     it "returns [['drugs', 3]] for job $100.00, 3 drugs" do
       repacking = described_class.new("$100.00, 3 drugs")
-
       expect(repacking.categories).to match_array [["drugs", 3]]
     end
 
@@ -65,13 +66,13 @@ describe PriceEstimator::Repacking do
   end
 
   describe PriceEstimator::MarkupCalculator do
-    describe "#final_markup" do
+    describe "#final_price" do
       context "with no categories" do
         let(:repacking) { double(base_price_cents: 1_00, categories: []) }
         let(:subject) { described_class.new(repacking) }
 
         it "returns the flat markup of 1_05 on 1_00" do
-          expect(subject.final_markup).to eql 1_05
+          expect(subject.final_price).to eql 1_05
         end
       end
 
@@ -80,21 +81,21 @@ describe PriceEstimator::Repacking do
           repacking = double(base_price_cents: 1_000_00, categories: [["person", 1]])
           calc = described_class.new(repacking)
 
-          expect(calc.final_markup).to eq 1_062_60
+          expect(calc.final_price).to eq 1_062_60
         end
 
         it "returns $1,153.95 for a $1,000.00 job with 2 people and 1 drugs" do
           repacking = double(base_price_cents: 1_000_00, categories: [["people", 2], ["drugs", 1]])
           calc = described_class.new(repacking)
 
-          expect(calc.final_markup).to eq 1_153_95
+          expect(calc.final_price).to eq 1_153_95
         end
 
         it "returns $13,877.33 for a $9,900.00 job with 1 electronics and 2 food" do
           repacking = double(base_price_cents: 9_900_00, categories: [["electronics", 1], ["food", 2]])
           calc = described_class.new(repacking)
 
-          expect(calc.final_markup).to eq 13_877_33
+          expect(calc.final_price).to eq 13_877_33
         end
       end
     end

@@ -1,11 +1,17 @@
 class PriceEstimator
-  def estimate(repack_description)
-    repacking = Repacking.new(repack_description)
-    calc      = MarkupCalculator.new(repacking)
-    format_cents_as_currency(calc.final_markup)
+  def initialize(repack_description)
+    @description = repack_description
+  end
+
+  def estimate
+    format_cents_as_currency(calculator.final_price)
   end
 
   private
+
+  def calculator
+    MarkupCalculator.new(Repacking.new(@description))
+  end
 
   def format_cents_as_currency(price_cents)
     dollars = price_cents / 100
@@ -67,20 +73,20 @@ class PriceEstimator
       "electronics" => 0.075,
     }.freeze
 
-    def initialize(job)
-      @job = job
+    def initialize(repacking)
+      @repacking = repacking
     end
 
-    def final_markup
+    def final_price
       flat_markup + category_markup
     end
 
     private
 
-    attr_reader :job
+    attr_reader :repacking
 
     def flat_markup
-      (job.base_price_cents * 1.05).round
+      (repacking.base_price_cents * 1.05).round
     end
 
     def category_markup
@@ -88,7 +94,7 @@ class PriceEstimator
     end
 
     def category_markup_percent
-      job.categories.reduce(0.0) do |markup, category_quantity|
+      repacking.categories.reduce(0.0) do |markup, category_quantity|
         category, quantity = *category_quantity
         markup + quantity * markup_for(category)
       end
