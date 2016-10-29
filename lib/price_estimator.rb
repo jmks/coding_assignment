@@ -1,7 +1,7 @@
 class PriceEstimator
-  def estimate(job_description)
-    job  = JobParser.new(job_description)
-    calc = MarkupCalculator.new(job)
+  def estimate(repack_description)
+    repacking = Repacking.new(repack_description)
+    calc      = MarkupCalculator.new(repacking)
     format_cents_as_currency(calc.final_markup)
   end
 
@@ -12,23 +12,12 @@ class PriceEstimator
     "$#{dollars}.#{cents.to_s.rjust(2, '0')}"
   end
 
-  class JobParser
-
+  class Repacking
     attr_reader :base_price_cents, :categories
 
     def initialize(description)
       @base_price_cents = extract_base_price_cents(description)
-      @categories =
-        description
-          .split(", ")
-          .slice(1..-1)
-          .map do |cat_desc|
-            quantity = cat_desc.to_i
-            quantity = 1 if quantity.zero?
-            category = cat_desc.sub(/^\d*\s*/, '')
-
-            [category, quantity]
-          end
+      @categories = extract_categories(description)
     end
 
     private
@@ -41,6 +30,19 @@ class PriceEstimator
         .sub(/,/, "")
         .sub(/\./, "")
         .to_i
+    end
+
+    def extract_categories(description)
+      description
+        .split(", ")
+        .slice(1..-1)
+        .map do |cat_desc|
+          quantity = cat_desc.to_i
+          quantity = 1 if quantity.zero?
+          category = cat_desc.sub(/^\d*\s*/, '')
+
+          [category, quantity]
+        end
     end
   end
 
