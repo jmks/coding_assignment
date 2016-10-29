@@ -48,7 +48,10 @@ class PriceEstimator
 
   class MarkupCalculator
     CATEGORY_MARKUPS = {
-      "person" => 0.012,
+      "people"      => 0.012,
+      "drugs"       => 0.075,
+      "food"        => 0.13,
+      "electronics" => 0.075,
     }.freeze
 
     def initialize(job)
@@ -74,8 +77,13 @@ class PriceEstimator
     def category_markup_percent
       job.categories.reduce(0.0) do |markup, category_quantity|
         category, quantity = *category_quantity
-        markup + quantity * CATEGORY_MARKUPS.fetch(category, 0.0)
+        markup + quantity * markup_for(category)
       end
+    end
+
+    def markup_for(category)
+      normalized_category = category == "person" ? "people" : category
+      CATEGORY_MARKUPS.fetch(normalized_category, 0.0)
     end
   end
 end
