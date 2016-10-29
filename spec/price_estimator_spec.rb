@@ -33,6 +33,33 @@ describe PriceEstimator::JobParser do
     end
   end
 
+  describe "#categories" do
+    context "with no categories" do
+      let(:description) { "$1,000.00" }
+
+      it "is empty" do
+        parsed_job = described_class.new(description)
+        expect(parsed_job.categories).to be_empty
+      end
+    end
+
+    it "returns [['drugs', 3]] for job $100.00, 3 drugs" do
+      job = described_class.new("$100.00, 3 drugs")
+
+      expect(job.categories).to match_array [["drugs", 3]]
+    end
+
+    it "returns [['person', 1]] for job $1,701.33, person" do
+      job = described_class.new("$1,701.33, person")
+      expect(job.categories).to match_array [["person", 1]]
+    end
+
+    it "returns [['drugs', 3], ['electronics', 2]] for job $19,433.77, 3 drugs, 2 electronics" do
+      job = described_class.new("$19,433.77, 3 drugs, 2 electronics")
+      expect(job.categories).to match_array [["drugs", 3], ["electronics", 2]]
+    end
+  end
+
   describe PriceEstimator::MarkupCalculator do
     describe "#final_markup" do
       context "with no categories" do

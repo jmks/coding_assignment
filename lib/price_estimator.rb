@@ -14,14 +14,21 @@ class PriceEstimator
 
   class JobParser
 
-    attr_reader :base_price_cents
+    attr_reader :base_price_cents, :categories
 
     def initialize(description)
       @base_price_cents = extract_base_price_cents(description)
-    end
+      @categories =
+        description
+          .split(", ")
+          .slice(1..-1)
+          .map do |cat_desc|
+            quantity = cat_desc.to_i
+            quantity = 1 if quantity.zero?
+            category = cat_desc.sub(/^\d*\s*/, '')
 
-    def categories
-      []
+            [category, quantity]
+          end
     end
 
     private
