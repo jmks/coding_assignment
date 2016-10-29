@@ -22,14 +22,36 @@ end
 
 describe PriceEstimator::JobParser do
   describe "#base_price_cents" do
-    it "returns 129_999 for job $1,299.99, 3 people, food" do
+    it "returns 1_299_99 for job $1,299.99, 3 people, food" do
       job = described_class.new("$1,299.99, 3 people, food")
-      expect(job.base_price_cents).to be 129_999
+      expect(job.base_price_cents).to be 1_299_99
     end
 
-    it "returns 1_245_695 for job $12,456.95" do
+    it "returns 12_456_95 for job $12,456.95" do
       job = described_class.new("$12,456.95")
-      expect(job.base_price_cents).to be 1_245_695
+      expect(job.base_price_cents).to be 12_456_95
+    end
+  end
+
+  describe PriceEstimator::MarkupCalculator do
+    describe "#final_markup" do
+      context "with no categories" do
+        let(:job) { double(base_price_cents: 1_00, categories: []) }
+        let(:subject) { described_class.new(job) }
+
+        it "returns the flat markup of 105 on 100" do
+          expect(subject.final_markup).to eql 1_05
+        end
+      end
+
+      context "with categories" do
+        it "returns $1,062.60 for a $1,000.00 job with 1 person" do
+          job  = double(base_price_cents: 1_000_00, categories: [["person", 1]])
+          calc = described_class.new(job)
+
+          expect(calc.final_markup).to eq 1_062_60
+        end
+      end
     end
   end
 end
