@@ -1,7 +1,15 @@
 class PriceEstimator
   def estimate(job_description)
     job = JobParser.new(job_description)
-    "$1,591.58"
+    cost = (job.base_price_cents * 1.05).round
+    format_cents_as_currency(cost)
+  end
+
+  def format_cents_as_currency(price_cents)
+    dollars = price_cents / 100
+    cents   = price_cents % 100
+
+    "$#{dollars}.#{cents.to_s.rjust(2, '0')}"
   end
 
   class JobParser
