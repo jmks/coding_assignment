@@ -1,10 +1,12 @@
+require "bigdecimal"
+
 class PriceEstimator
   def initialize(repack_description)
     @description = repack_description
   end
 
   def estimate
-    format_cents_as_currency(calculator.final_price)
+    currency_format(calculator.final_price)
   end
 
   private
@@ -13,11 +15,9 @@ class PriceEstimator
     MarkupCalculator.new(Repacking.new(@description))
   end
 
-  def format_cents_as_currency(price_cents)
-    dollars = price_cents / 100
-    cents   = price_cents % 100
-
-    "$#{thousands_delimited dollars}.#{cents.to_s.rjust(2, '0')}"
+  def currency_format(big_decimal)
+    cents = (big_decimal.frac * 100).to_i
+    "$#{thousands_delimited(big_decimal.to_i)}.#{cents.to_s.rjust(2, '0')}"
   end
 
   def thousands_delimited(dollars)
@@ -32,23 +32,24 @@ class PriceEstimator
   end
 
   class Repacking
-    attr_reader :base_price_cents, :categories
+    attr_reader :base_price, :categories
 
     def initialize(description)
-      @base_price_cents = extract_base_price_cents(description)
+      @base_price = extract_base_price(description)
       @categories = extract_categories(description)
     end
 
     private
 
-    def extract_base_price_cents(description)
-      description
-        .split(", ")
-        .first
-        .sub(/^\$/, "")
-        .sub(/,/, "")
-        .sub(/\./, "")
-        .to_i
+    def extract_base_price(description)
+      unformatted_price =
+        description
+          .split(", ")
+          .first
+          .sub(/^\$/, "")
+          .gsub(",", "")
+
+      BigDecimal(unformatted_price)
     end
 
     def extract_categories(description)
@@ -67,10 +68,10 @@ class PriceEstimator
 
   class MarkupCalculator
     CATEGORY_MARKUPS = {
-      "people"      => 0.012,
-      "drugs"       => 0.075,
-      "food"        => 0.13,
-      "electronics" => 0.02,
+      "people"      => BigDecimal("0.012"),
+      "drugs"       => BigDecimal("0.075"),
+      "food"        => BigDecimal("0.13"),
+      "electronics" => BigDecimal("0.02")
     }.freeze
 
     def initialize(repacking)
@@ -86,15 +87,15 @@ class PriceEstimator
     attr_reader :repacking
 
     def flat_markup
-      (repacking.base_price_cents * 1.05).round
+      (repacking.base_price * BigDecimal("1.05")).round(2)
     end
 
     def category_markup
-      (category_markup_percent * flat_markup).round
+      (category_markup_percent * flat_markup).round(2)
     end
 
     def category_markup_percent
-      repacking.categories.reduce(0.0) do |markup, category_quantity|
+      repacking.categories.reduce(BigDecimal(0)) do |markup, category_quantity|
         category, quantity = *category_quantity
         markup + quantity * markup_for(category)
       end
@@ -102,7 +103,7 @@ class PriceEstimator
 
     def markup_for(category)
       normalized_category = category == "person" ? "people" : category
-      CATEGORY_MARKUPS.fetch(normalized_category, 0.0)
+      CATEGORY_MARKUPS.fetch(normalized_category, BigDecimal(0))
     end
   end
 end

@@ -27,15 +27,15 @@ describe PriceEstimator do
 end
 
 describe PriceEstimator::Repacking do
-  describe "#base_price_cents" do
-    it "returns 1_299_99 for job $1,299.99, 3 people, food" do
+  describe "#base_price" do
+    it "returns 1299.99 for job $1,299.99, 3 people, food" do
       repacking = described_class.new("$1,299.99, 3 people, food")
-      expect(repacking.base_price_cents).to be 1_299_99
+      expect(repacking.base_price).to eq BigDecimal("1299.99")
     end
 
-    it "returns 12_456_95 for job $12,456.95" do
+    it "returns 12,456.95 for job $12,456.95" do
       repacking = described_class.new("$12,456.95")
-      expect(repacking.base_price_cents).to be 12_456_95
+      expect(repacking.base_price).to eq BigDecimal("12456.95")
     end
   end
 
@@ -68,34 +68,48 @@ describe PriceEstimator::Repacking do
   describe PriceEstimator::MarkupCalculator do
     describe "#final_price" do
       context "with no categories" do
-        let(:repacking) { double(base_price_cents: 1_00, categories: []) }
+        let(:repacking) do
+          double(base_price: BigDecimal.new(1), categories: [])
+        end
         let(:subject) { described_class.new(repacking) }
 
-        it "returns the flat markup of 1_05 on 1_00" do
-          expect(subject.final_price).to eql 1_05
+        it "returns the flat markup of 1.05 on 1.00" do
+          expect(subject.final_price).to eql BigDecimal.new('1.05')
         end
       end
 
       context "with categories" do
-        it "returns $1,062.60 for a $1,000.00 job with 1 person" do
-          repacking = double(base_price_cents: 1_000_00, categories: [["person", 1]])
+        it "returns 1,062.60 for a 1,000.00 job with 1 person" do
+          repacking =
+            double(
+              base_price: BigDecimal.new(1_000),
+              categories: [["person", 1]]
+            )
           calc = described_class.new(repacking)
 
-          expect(calc.final_price).to eq 1_062_60
+          expect(calc.final_price).to eq BigDecimal.new('1062.60')
         end
 
-        it "returns $1,153.95 for a $1,000.00 job with 2 people and 1 drugs" do
-          repacking = double(base_price_cents: 1_000_00, categories: [["people", 2], ["drugs", 1]])
+        it "returns 1,153.95 for a 1,000.00 job with 2 people and 1 drugs" do
+          repacking =
+            double(
+              base_price: BigDecimal.new(1_000),
+              categories: [["people", 2], ["drugs", 1]]
+            )
           calc = described_class.new(repacking)
 
-          expect(calc.final_price).to eq 1_153_95
+          expect(calc.final_price).to eq BigDecimal.new('1153.95')
         end
 
-        it "returns $13,305.60 for a $9,900.00 job with 1 electronics and 2 food" do
-          repacking = double(base_price_cents: 9_900_00, categories: [["electronics", 1], ["food", 2]])
+        it "returns 13,305.60 for a 9,900.00 job with 1 electronics and 2 food" do
+          repacking =
+            double(
+              base_price: BigDecimal.new(9_900),
+              categories: [["electronics", 1], ["food", 2]]
+            )
           calc = described_class.new(repacking)
 
-          expect(calc.final_price).to eq 13_305_60
+          expect(calc.final_price).to eq BigDecimal.new('13305.60')
         end
       end
     end
