@@ -1,34 +1,21 @@
 require "bigdecimal"
+require "currency_helper"
 
 class PriceEstimator
+  include CurrencyHelper
+
   def initialize(repack_description)
     @description = repack_description
   end
 
   def estimate
-    currency_format(calculator.final_price)
+    format_bigdecimal(calculator.final_price)
   end
 
   private
 
   def calculator
     MarkupCalculator.new(Repacking.new(@description))
-  end
-
-  def currency_format(big_decimal)
-    cents = (big_decimal.frac * 100).to_i
-    "$#{thousands_delimited(big_decimal.to_i)}.#{cents.to_s.rjust(2, '0')}"
-  end
-
-  def thousands_delimited(dollars)
-    dollars
-      .to_s
-      .reverse
-      .chars
-      .each_slice(3)
-      .map(&:join)
-      .join(",")
-      .reverse
   end
 
   class Repacking
